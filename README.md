@@ -15,12 +15,17 @@ A reproducible MLOps pipeline template for time series forecasting with DVC, MLf
 
 ### Artifact Tracking Strategy
 - **Git-tracked**: Configuration files, source code, scripts
-- **DVC-tracked**: 
+- **DVC-tracked** (stored in `dvc_storage/` remote): 
   - `data/raw/` - Raw datasets
   - `data/processed/` - Processed features
   - `artifacts/` - Model artifacts and preprocessors
   - `metrics/` - Evaluation metrics
   - `plots/` - Plot data files
+
+**Note**: After running `dvc init`, configure the local remote with:
+```bash
+dvc remote add -d local_storage ./dvc_storage
+```
 
 ## Quick Start
 
