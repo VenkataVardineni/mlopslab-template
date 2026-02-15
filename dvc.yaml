@@ -1,0 +1,74 @@
+stages:
+  prepare_raw:
+    cmd: python src/stages/prepare_raw.py --config configs/data.yaml --output data/raw/source.csv
+    deps:
+      - src/stages/prepare_raw.py
+      - configs/data.yaml
+    outs:
+      - data/raw/source.csv
+    params:
+      - configs/data.yaml
+
+  prepare_features:
+    cmd: python src/stages/prepare_features.py --input data/raw/source.csv --output data/processed/features.parquet --config configs/data.yaml --scaler-dir artifacts/preprocess
+    deps:
+      - src/stages/prepare_features.py
+      - data/raw/source.csv
+      - configs/data.yaml
+    outs:
+      - data/processed/features.parquet
+      - artifacts/preprocess/scaler.json
+    params:
+      - configs/data.yaml
+
+  train:
+    cmd: python src/stages/train.py --input data/processed/features.parquet --output artifacts/model --params params.yaml --config configs/data.yaml
+    deps:
+      - src/stages/train.py
+      - src/utils/repro.py
+      - data/processed/features.parquet
+      - artifacts/preprocess/scaler.json
+      - params.yaml
+      - configs/data.yaml
+    outs:
+      - artifacts/model/model.pt
+      - artifacts/model/model_card.json
+      - artifacts/model/repro_info.json
+    params:
+      - params.yaml
+      - configs/data.yaml
+
+  train_arima:
+    cmd: python src/stages/train_arima.py --input data/raw/source.csv --output artifacts/model_arima --params params.yaml --config configs/data.yaml --auto-order
+    deps:
+      - src/stages/train_arima.py
+      - src/utils/repro.py
+      - data/raw/source.csv
+      - params.yaml
+      - configs/data.yaml
+    outs:
+      - artifacts/model_arima/arima_params.json
+      - artifacts/model_arima/predictions.csv
+      - artifacts/model_arima/model_card.json
+      - artifacts/model_arima/repro_info.json
+    params:
+      - params.yaml
+      - configs/data.yaml
+
+  evaluate:
+    cmd: python src/stages/evaluate.py --features data/processed/features.parquet --model-dir artifacts/model --metrics-output metrics/metrics.json --plots-output plots/forecast.csv --params params.yaml --config configs/data.yaml
+    deps:
+      - src/stages/evaluate.py
+      - src/stages/train.py
+      - data/processed/features.parquet
+      - artifacts/model/model.pt
+      - artifacts/model/model_card.json
+      - params.yaml
+      - configs/data.yaml
+    outs:
+      - metrics/metrics.json
+      - plots/forecast.csv
+    params:
+      - params.yaml
+      - configs/data.yaml
+
