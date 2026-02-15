@@ -9,7 +9,16 @@ help:
 	@echo "  make clean      - Clean generated artifacts and caches"
 
 setup:
-	pip install -r requirements-lock.txt
+	@echo "Running setup..."
+	@if [ -f setup.sh ]; then \
+		./setup.sh; \
+	else \
+		pip install -r requirements-lock.txt; \
+		pip install dvc; \
+		dvc init --no-scm || true; \
+		mkdir -p dvc_storage; \
+		dvc remote add -d local_storage ./dvc_storage || true; \
+	fi
 
 repro:
 	dvc repro
