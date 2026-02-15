@@ -125,5 +125,29 @@ Data persists across container restarts via Docker volumes.
 
 ## Serving
 
-See `serve/README.md` for model serving instructions.
+### Quick Start
+
+```bash
+# Run the FastAPI server locally
+cd serve
+uvicorn app:app --reload
+
+# Or using Docker
+docker build -t mlopslab-serve -f serve/Dockerfile .
+docker run -p 8000:8000 -v $(pwd)/artifacts:/app/artifacts mlopslab-serve
+```
+
+### API Usage
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Generate forecast
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"context": [1.0, 2.0, 3.0, ...]}'
+```
+
+For detailed API documentation, see `serve/README.md`.
 
