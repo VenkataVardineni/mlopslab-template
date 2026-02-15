@@ -14,6 +14,8 @@ from torch.utils.data import Dataset, DataLoader
 import yaml
 
 from src.utils.repro import set_seeds, log_reproducibility_info
+from src.utils.mlflow_utils import setup_mlflow, log_params_from_yaml, log_model_artifacts
+import mlflow
 
 
 class TimeSeriesDataset(Dataset):
@@ -210,16 +212,29 @@ def main():
         quantiles=quantiles
     ).to(device)
     
+    # Setup MLflow
+    setup_mlflow(experiment_name="mlopslab-training")
+    
     # Training setup
     optimizer = optim.Adam(model.parameters(), lr=params["training"]["learning_rate"])
     epochs = params["training"]["epochs"]
     
-    # Train
-    print(f"Training for {epochs} epochs...")
-    for epoch in range(epochs):
-        loss = train_epoch(model, train_loader, optimizer, quantiles, device)
-        if (epoch + 1) % 10 == 0:
-            print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss:.4f}")
+    # Start MLflow run
+    with mlflow.start_run(run_name="seq2seq-attention"):
+        # Log parameters
+        log_params_from_yaml(params_path)
+        mlflow.log_param("model_type", "Seq2SeqAttention")
+        
+        # Train
+        print(f"Training for {epochs} epochs...")
+        for epoch in range(epochs):
+            loss = train_epoch(model, train_loader, optimizer, quantiles, device)
+            if (epoch + 1) % 10 == 0:
+                print(f"Epoch {epoch + 1}/{epochs}, Loss: {loss:.4f}")
+                mlflow.log_metric("train_loss", loss, step=epoch + 1)
+        
+        # Log final training loss
+        mlflow.log_metric("final_train_loss", loss)
     
     # Save model
     output_path.mkdir(parents=True, exist_ok=True)
@@ -243,8 +258,12 @@ def main():
     # Log reproducibility info
     log_reproducibility_info(output_path, seed=seed, model_type="Seq2SeqAttention")
     
+    # Log model artifacts to MLflow
+    log_model_artifacts(output_path)
+    
     print(f"✓ Model saved to {output_path}")
     print(f"  Model card: {output_path / 'model_card.json'}")
+    print(f"  MLflow run ID: {mlflow.active_run().info.run_id if mlflow.active_run() else 'N/A'}")
 
 
 if __name__ == "__main__":

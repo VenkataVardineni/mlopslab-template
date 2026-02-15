@@ -13,6 +13,8 @@ from torch.utils.data import Dataset, DataLoader
 import yaml
 
 from src.stages.train import Seq2SeqAttention, TimeSeriesDataset
+from src.utils.mlflow_utils import setup_mlflow, log_metrics_from_json, log_forecast_plot
+import mlflow
 
 
 def load_model(model_dir: Path, device: torch.device) -> nn.Module:
@@ -199,6 +201,9 @@ def main():
     quantiles = params["quantiles"]
     results = evaluate_model(model, test_loader, device, quantiles)
     
+    # Setup MLflow
+    setup_mlflow(experiment_name="mlopslab-evaluation")
+    
     # Compute metrics
     print("Computing metrics...")
     metrics = compute_metrics(results["targets"], results["predictions"], quantiles)
@@ -207,11 +212,6 @@ def main():
     metrics_output.parent.mkdir(parents=True, exist_ok=True)
     with open(metrics_output, "w") as f:
         json.dump(metrics, f, indent=2)
-    
-    print(f"✓ Metrics saved to {metrics_output}")
-    print(f"  MAE: {metrics['mae']:.4f}")
-    print(f"  RMSE: {metrics['rmse']:.4f}")
-    print(f"  Coverage: {metrics['coverage']:.4f}")
     
     # Create plot data
     print("Creating forecast plot data...")
@@ -224,8 +224,24 @@ def main():
     plots_output.parent.mkdir(parents=True, exist_ok=True)
     plot_df.to_csv(plots_output, index=False)
     
-    print(f"✓ Plot data saved to {plots_output}")
-    print(f"  Shape: {plot_df.shape}")
+    # Log to MLflow
+    with mlflow.start_run(run_name="evaluation"):
+        # Log metrics
+        log_metrics_from_json(metrics_output)
+        
+        # Log forecast plot
+        log_forecast_plot(plots_output)
+        
+        # Link to model
+        mlflow.log_param("model_dir", str(model_dir))
+        
+        print(f"✓ Metrics saved to {metrics_output}")
+        print(f"  MAE: {metrics['mae']:.4f}")
+        print(f"  RMSE: {metrics['rmse']:.4f}")
+        print(f"  Coverage: {metrics['coverage']:.4f}")
+        print(f"✓ Plot data saved to {plots_output}")
+        print(f"  Shape: {plot_df.shape}")
+        print(f"  MLflow run ID: {mlflow.active_run().info.run_id if mlflow.active_run() else 'N/A'}")
 
 
 if __name__ == "__main__":
