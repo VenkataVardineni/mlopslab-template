@@ -71,4 +71,14 @@ stages:
     params:
       - params.yaml
       - configs/data.yaml
+    metrics:
+      - metrics/metrics.json
+    plots:
+      - plots/forecast.csv:
+          x: timestamp
+          y:
+            - actual
+            - pred_p50
+            - pred_p10
+            - pred_p90
 
