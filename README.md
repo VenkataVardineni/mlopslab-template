@@ -42,6 +42,9 @@ make mlflow-up
 
 # Stop MLflow
 make mlflow-down
+
+# Set MLflow tracking URI (before running pipeline)
+export MLFLOW_TRACKING_URI=http://localhost:5000
 ```
 
 ## Project Structure
@@ -82,6 +85,43 @@ dvc metrics diff HEAD~1 HEAD
 ```
 
 The script will show metric deltas and provide instructions for viewing plots comparisons.
+
+## MLflow Tracking
+
+The project uses MLflow to track experiments, parameters, metrics, and artifacts.
+
+### Starting MLflow Server
+
+```bash
+# Start MLflow tracking server with PostgreSQL backend
+make mlflow-up
+
+# Set tracking URI
+export MLFLOW_TRACKING_URI=http://localhost:5000
+
+# Run pipeline (experiments will be logged to MLflow)
+make repro
+```
+
+### Accessing MLflow UI
+
+Once the server is running, access the MLflow UI at:
+- **URL**: http://localhost:5000
+
+The UI allows you to:
+- Browse all experiment runs
+- Compare runs side-by-side
+- View metrics, parameters, and artifacts
+- Download model artifacts
+
+### MLflow Configuration
+
+The MLflow server uses:
+- **Backend Store**: PostgreSQL (persistent)
+- **Artifact Store**: Local volume (`mlflow_artifacts`)
+- **Port**: 5000
+
+Data persists across container restarts via Docker volumes.
 
 ## Serving
 
