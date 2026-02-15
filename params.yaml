@@ -1,0 +1,26 @@
+# Model hyperparameters
+model:
+  context_length: 30      # Input sequence length
+  horizon: 7              # Forecast horizon
+  hidden_dim: 64          # Hidden dimension for encoder/decoder
+  num_layers: 2           # Number of LSTM layers
+  dropout: 0.1            # Dropout rate
+  attention_dim: 32       # Attention dimension
+
+# Training parameters
+training:
+  epochs: 50
+  batch_size: 32
+  learning_rate: 0.001
+  seed: 42
+
+# Quantile regression
+quantiles:
+  - 0.1   # p10
+  - 0.5   # p50 (median)
+  - 0.9   # p90
+
+# Data split
+data:
+  train_split: 0.8        # 80% train, 20% test
+
