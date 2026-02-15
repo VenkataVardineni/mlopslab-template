@@ -1,0 +1,17 @@
+dataset:
+  # URL or local path to dataset
+  url: "https://raw.githubusercontent.com/facebook/prophet/master/examples/example_wp_log_peyton_manning.csv"
+  # Alternative: local path
+  # path: "data/external/source.csv"
+  
+  # Column names in the dataset
+  timestamp_col: "ds"
+  value_col: "y"
+  
+  # Validation settings
+  validation:
+    required_columns: ["ds", "y"]
+    timestamp_format: "%Y-%m-%d"  # Flexible parsing
+    min_rows: 100
+    check_ordering: true
+
