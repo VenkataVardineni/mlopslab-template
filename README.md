@@ -76,7 +76,12 @@ dvc metrics diff HEAD~1 HEAD
 
 # Or use the comparison script
 ./scripts/compare_metrics.sh
+
+# Compare specific commits
+./scripts/compare_metrics.sh HEAD~1 HEAD
 ```
+
+The script will show metric deltas and provide instructions for viewing plots comparisons.
 
 ## Serving
 
